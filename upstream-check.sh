@@ -93,9 +93,16 @@ main() {
 
         # Check for changes in each repo
         for REPO in $REPO_NAMES; do
+            REPO_NAME=$(echo "$REPO" | sed 's|LineageOS/android_||')
+
+            # Special case for 'manifest'
+            if [ "$REPO_NAME" = "manifest" ]; then
+                echo -e "${YELLOW}Special case: Checking for changes in LineageOS/android for 'manifest'${NC}"
+                REPO="LineageOS/android"
+            fi
+
             if echo "$CHANGES" | jq -r '.project' | grep -q "$REPO"; then
                 echo -e "${YELLOW}Changes detected in repo: $REPO${NC}"
-                REPO_NAME=$(echo "$REPO" | sed 's|LineageOS/android_||')
                 trigger_github_workflow "$REPO_NAME"
             fi
         done
