@@ -2,12 +2,21 @@
 
 # Configuration
 GERRIT_HOST="review.lineageos.org"       # Replace with your Gerrit host
-USERNAME="Jayant-Deshmukh"              # Replace with your Gerrit username
 SSH_PORT=29418                          # Default Gerrit SSH port
 LAST_CHECK_FILE="last_check.txt"        # File to store the last check timestamp
 XML_URL="https://raw.githubusercontent.com/SuperiorOS/manifest/refs/heads/fifteen-los/snippets/superior.xml"  # XML URL
 REPO_OWNER="SuperiorOS"                 # GitHub organization or username
 EVENT_TYPE="sync_trigger"               # Custom event type for workflow
+
+# Retrieve Gerrit username from git config
+USERNAME=$(git config --global lineage.gerrit.username)
+
+# Check if USERNAME is set, otherwise exit with an error
+if [ -z "$USERNAME" ]; then
+    echo -e "${RED}Error: Gerrit username is not set in git config. Please run:${NC}"
+    echo -e "${CYAN}git config --global lineage.gerrit.username <your-username>${NC}"
+    exit 1
+fi
 
 # Fetch GitHub token from the environment
 GITHUB_PERSONAL_TOKEN="${GITHUB_PERSONAL_TOKEN:?Environment variable 'GITHUB_PERSONAL_TOKEN' is not set.}"
@@ -38,7 +47,7 @@ update_last_check_time() {
 # Function to query Gerrit for new merged changes
 query_gerrit() {
     local last_check="$1"
-    ssh -p "$SSH_PORT" "$USERNAME@$GERRIT_HOST" gerrit query --format=JSON "status:merged after:'$last_check'"
+    ssh -p "$SSH_PORT" "$USERNAME@$GERRIT_HOST" gerrit query --format=JSON "status:merged branch:lineage-22.1 after:'$last_check'"
 }
 
 # Function to download and parse the XML file for repo names
